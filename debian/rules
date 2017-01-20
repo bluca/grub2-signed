@@ -1,22 +1,52 @@
-#! /usr/bin/make -f
+#!/usr/bin/make -f
+SHELL := sh -e
 
-include /usr/share/dpkg/default.mk
+include debian/rules.defs
+
+SIGN = debian/bin/sign.py
+
+DEB_HOST_ARCH  := $(shell dpkg-architecture -qDEB_HOST_ARCH)
+
+PLATFORM := UNKNOWN-PLATFORM
+EFI_NAME := UNKNOWN-EFI-NAME
+
+ifeq ($(DEB_HOST_ARCH),amd64)
+PLATFORM := x86_64-efi
+EFI_NAME := x64
+endif
+
+ifeq ($(DEB_HOST_ARCH),arm64)
+PLATFORM := arm64-efi
+EFI_NAME := aa64
+endif
+
+UNSIGNED_PACKAGE_NAME = grub-efi-$(DEB_HOST_ARCH)-unsigned
+PACKAGE_NAME = grub-efi-$(DEB_HOST_ARCH)-signed
+PACKAGE_DIR = debian/$(PACKAGE_NAME)
+SIGNATURE_DIR = debian/signatures/$(UNSIGNED_PACKAGE_NAME)
 
 %:
 	dh $@
 
-destdir := debian/grub-efi-$(DEB_HOST_ARCH)-signed
-docdir  := $(destdir)/usr/share/doc/grub-efi-$(DEB_HOST_ARCH)-signed
-
-override_dh_installchangelogs:
-	dh_installchangelogs
-	# Quieten lintian, which otherwise gets confused by our odd version
-	# number.
-	ln $(docdir)/changelog $(docdir)/changelog.Debian
-
-override_dh_gencontrol:
-	dh_gencontrol -- -v$(DEB_VERSION)+$(shell cat version) \
-		-Vgrub2:Version=$(shell cat version)
-
 override_dh_auto_install:
-	dh_auto_install --destdir=$(destdir)
+	mkdir -p $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed
+	for BIN in grub gcd grubnet; do \
+		rsync -a /usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/; \
+		if [ -f $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig ]; then \
+			sbattach --attach $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig \
+				$(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi; \
+		else \
+			echo "$(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/$$BIN$(EFI_NAME).efi.sig not found!"; \
+			exit 1; \
+		fi; \
+	done
+
+maintainerclean:
+	rm -rf debian/localpackages
+
+sign:
+	for GRUB_ARCH in $(GRUB_ARCHS); do \
+		$(SIGN) "$(GRUB_VERSION)" "$$GRUB_ARCH" "$(UNSIGNED_PACKAGE_NAME)" "$(GRUB_PRIVKEY)" "$(GRUB_CERT)" "$(MIRROR_URL)" "$(MIRROR_SUITE)"; \
+	done
+
+.PHONY: maintainerclean sign

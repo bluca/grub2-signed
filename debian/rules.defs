@@ -1,0 +1,11 @@
+BUILD_DIR = debian/build
+GRUB_VERSION :=
+GRUB_ARCHS :=
+
+MIRROR_URL = http://deb.debian.org/debian/
+MIRROR_SUITE = unstable
+
+# For initial testing - to be replaced with HSM
+GRUB_SIGNER :=
+GRUB_PRIVKEY :=
+GRUB_CERT :=

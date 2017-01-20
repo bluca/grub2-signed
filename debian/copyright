@@ -2,18 +2,57 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: GNU GRUB
 Source: http://www.gnu.org/software/grub/
 Comment:
- This package exists to download a signed binary from the Ubuntu archive and
- publish it in .deb format.  The actual bootloader source code may be found
- in the grub2 source package: 'apt-get source grub2'.
+ This file describes only the grub2-signed source package. The actual
+ bootloader source code may be found in the grub2 source package:
+ 'apt-get source grub2'.
 
-Files: *
-Copyright: 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc
-License: GPL-3+
+Files: debian/certs/* debian/signatures/*
+License: public-domain
+ Digital signatures and certificates are presumed not to be
+ copyrightable works, and no copyright is claimed for them.
+Comment:
+ The signatures and certificates in this package cannot be regenerated
+ as-is without the associated private key material, but they can be
+ replaced using alternate private keys.
+
+Files: debian/rules
+Copyright: 2016 Debian kernel team
+           2017 Brocade Communications Systems
+License: GPL-2
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License version 2 as
+ published by the Free Software Foundation.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this package; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
 
 Files: debian/*
 Copyright: 2012 Canonical Ltd.
+           2016 Debian kernel team
+           2017 Brocade Communications Systems
 License: GPL-3+
-
-License: GPL-3+
- On Ubuntu systems the full text of the GNU General Public License can be
- found in the `/usr/share/common-licenses/GPL-3' file.
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the full text of the GPL v3 can be found in
+ /usr/share/common-licenses/GPL-3

@@ -1,0 +1,2 @@
+tar-ignore = debian/localpackages
+tar-ignore = .git
