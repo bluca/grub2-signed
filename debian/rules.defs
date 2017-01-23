@@ -1,6 +1,12 @@
 BUILD_DIR = debian/build
 GRUB_VERSION :=
 GRUB_ARCHS :=
+# sbsign (default) or pesign
+SIGNER := pesign
+# when using pesign, points to the NSS DB that holds the certs
+NSS_DIR :=
+# to be used with pesign to make use of a hardware token
+NSS_TOKEN :=
 
 MIRROR_URL = http://deb.debian.org/debian/
 MIRROR_SUITE = unstable

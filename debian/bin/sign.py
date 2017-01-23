@@ -155,8 +155,22 @@ def sign_image_efi(image_name, signature_name, privkey_name, cert_name):
     if not os.path.isfile(signature_name):
         raise Exception('sbsign failed')
 
+def sign_image_efi_pesign(image_name, signature_name, nss_dir, cert_name,
+                          nss_token=""):
+    print('I: Signing image %s' % image_name)
+    print('I: Storing detached signature as %s' % signature_name)
+    os.makedirs(os.path.dirname(signature_name), exist_ok=True)
+    subprocess.check_call(['pesign', '-s', '-n', nss_dir, '-c', cert_name,
+                           '--export-signature', signature_name,
+                           '-i', image_name] +
+                           ([] if len(nss_token) == 0 else ['-t', nss_token]))
+    # Work around bug #819987
+    if not os.path.isfile(signature_name):
+        raise Exception('pesign failed')
+
 def sign(grubversion_str, arch, package_name, image_privkey_name,
-         image_cert_name, mirror_url, suite):
+         image_cert_name, mirror_url, suite, signer='sbsign',
+         nss_dir=None, nss_token=""):
     signature_dir = 'debian/signatures'
     if os.path.isdir(signature_dir):
         shutil.rmtree(signature_dir)
@@ -180,11 +194,20 @@ def sign(grubversion_str, arch, package_name, image_privkey_name,
         # Shrink the heap before we start forking children
         gc.collect()
 
-        sign_image_efi('%s/usr/lib/grub/%s-signed/%s%s.efi' %
+        if signer == 'sbsign':
+            sign_image_efi('%s/usr/lib/grub/%s-signed/%s%s.efi' %
                            (package_dir, platform, binary, efi_name),
                            '%s/usr/lib/grub/%s-signed/%s%s.efi.sig' %
                            (signature_dir, platform, binary, efi_name),
                            image_privkey_name, image_cert_name)
+        elif signer == 'pesign':
+            sign_image_efi_pesign('%s/usr/lib/grub/%s-signed/%s%s.efi' %
+                           (package_dir, platform, binary, efi_name),
+                           '%s/usr/lib/grub/%s-signed/%s%s.efi.sig' %
+                           (signature_dir, platform, binary, efi_name),
+                           nss_dir, image_cert_name, nss_token)
+        else:
+            raise Exception('unknown signer')
 
     print('Signatures should be committed: git add debian/signatures && git commit')
 

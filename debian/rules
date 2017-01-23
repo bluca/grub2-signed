@@ -46,7 +46,7 @@ maintainerclean:
 
 sign:
 	for GRUB_ARCH in $(GRUB_ARCHS); do \
-		$(SIGN) "$(GRUB_VERSION)" "$$GRUB_ARCH" "$(UNSIGNED_PACKAGE_NAME)" "$(GRUB_PRIVKEY)" "$(GRUB_CERT)" "$(MIRROR_URL)" "$(MIRROR_SUITE)"; \
+		$(SIGN) "$(GRUB_VERSION)" "$$GRUB_ARCH" "$(UNSIGNED_PACKAGE_NAME)" "$(GRUB_PRIVKEY)" "$(GRUB_CERT)" "$(MIRROR_URL)" "$(MIRROR_SUITE)" "$(SIGNER)" "$(NSS_DIR)" "$(NSS_TOKEN)"; \
 	done
 
 .PHONY: maintainerclean sign
