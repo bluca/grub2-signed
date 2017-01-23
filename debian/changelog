@@ -10,7 +10,7 @@ grub2-signed (1.79) UNRELEASED; urgency=medium
   * Override Lintian Warnings about changelog being non-native
   * Install grub's version, changelog and copyright
 
- -- Luca Boccassi <luca.boccassi@gmail.com>  Mon, 23 Jan 2017 17:02:01 +0000
+ -- Luca Boccassi <lboccass@brocade.com>  Mon, 23 Jan 2017 17:02:01 +0000
 
 grub2-signed (1.78) zesty; urgency=medium
 
