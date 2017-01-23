@@ -1,3 +1,17 @@
+grub2-signed (1.79) UNRELEASED; urgency=medium
+
+  * Import grub2-signed 1.78 from Ubuntu
+  * Implement offline signing and detached signatures
+  * Add support for pesign
+  * Add support for pesign to attach signatures at build-time
+  * Make logic more modular and less hard-coded
+  * Add debian/README.source with sign instructions
+  * Add Copyright: Public Domain to silence Lintian Warning
+  * Override Lintian Warnings about changelog being non-native
+  * Install grub's version, changelog and copyright
+
+ -- Luca Boccassi <luca.boccassi@gmail.com>  Mon, 23 Jan 2017 17:02:01 +0000
+
 grub2-signed (1.78) zesty; urgency=medium
 
   * Rebuild against grub2 2.02~beta3-3ubuntu2. (LP: #1447500)
