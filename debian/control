@@ -2,7 +2,7 @@ Source: grub2-signed
 Section: utils
 Priority: optional
 Maintainer: Luca Boccassi <luca.boccassi@gmail.com>
-Build-Depends: debhelper (>= 9.20151004~), rsync, sbsigntool [amd64 arm64 armhf i386], grub-efi-amd64-unsigned (>= 2.02~beta3-3) [amd64], grub-efi-arm64-unsigned (>= 2.02~beta3-3) [arm64]
+Build-Depends: debhelper (>= 9.20151004~), rsync, pesign [amd64 arm64 armhf i386], grub-efi-amd64-unsigned (>= 2.02~beta3-3) [amd64], grub-efi-arm64-unsigned (>= 2.02~beta3-3) [arm64]
 Standards-Version: 3.9.8
 
 Package: grub-efi-amd64-signed

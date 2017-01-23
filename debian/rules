@@ -31,10 +31,14 @@ SIGNATURE_DIR = debian/signatures/$(UNSIGNED_PACKAGE_NAME)
 override_dh_auto_install:
 	mkdir -p $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed
 	for BIN in grub gcd grubnet; do \
-		rsync -a /usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/; \
 		if [ -f $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig ]; then \
-			sbattach --attach $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig \
-				$(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi; \
+			if [ "$(SIGNER)" = "pesign" ]; then \
+				pesign --import-signed-certificate $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig -i /usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi -o $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.signed --padding; \
+			else \
+				cp -a /usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.signed; \
+				sbattach --attach $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig \
+					$(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.signed; \
+			fi; \
 		else \
 			echo "$(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/$$BIN$(EFI_NAME).efi.sig not found!"; \
 			exit 1; \
