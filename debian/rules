@@ -1,24 +1,11 @@
 #!/usr/bin/make -f
-SHELL := sh -e
+SHELL := bash -e
 
 include debian/rules.defs
 
 SIGN = debian/bin/sign.py
 
 DEB_HOST_ARCH  := $(shell dpkg-architecture -qDEB_HOST_ARCH)
-
-PLATFORM := UNKNOWN-PLATFORM
-EFI_NAME := UNKNOWN-EFI-NAME
-
-ifeq ($(DEB_HOST_ARCH),amd64)
-PLATFORM := x86_64-efi
-EFI_NAME := x64
-endif
-
-ifeq ($(DEB_HOST_ARCH),arm64)
-PLATFORM := arm64-efi
-EFI_NAME := aa64
-endif
 
 UNSIGNED_PACKAGE_NAME = grub-efi-$(DEB_HOST_ARCH)-unsigned
 PACKAGE_NAME = grub-efi-$(DEB_HOST_ARCH)-signed
@@ -29,28 +16,29 @@ SIGNATURE_DIR = debian/signatures/$(UNSIGNED_PACKAGE_NAME)
 	dh $@
 
 override_dh_auto_install:
-	mkdir -p $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed
-	for BIN in grub gcd grubnet; do \
-		if [ -f $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig ]; then \
-			if [ "$(SIGNER)" = "pesign" ]; then \
-				pesign --import-signed-certificate $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig -i /usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi -o $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.signed --padding; \
-			else \
-				cp -a /usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi $(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.signed; \
-				sbattach --attach $(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.sig \
-					$(PACKAGE_DIR)/usr/lib/grub/$(PLATFORM)-signed/"$$BIN"$(EFI_NAME).efi.signed; \
-			fi; \
+	while read SIG; do \
+		mkdir -p $(PACKAGE_DIR)/usr/lib/grub/$${SIG%/*}; \
+		if [ "$(SIGNER)" = "pesign" ]; then \
+			pesign --import-signed-certificate \
+				$(SIGNATURE_DIR)/usr/lib/grub/"$$SIG" \
+				-i /usr/lib/grub/$${SIG%.sig} \
+				-o $(PACKAGE_DIR)/usr/lib/grub/"$$SIG"ned --padding; \
 		else \
-			echo "$(SIGNATURE_DIR)/usr/lib/grub/$(PLATFORM)-signed/$$BIN$(EFI_NAME).efi.sig not found!"; \
-			exit 1; \
+			cp -a /usr/lib/grub/$${SIG%.sig} \
+				$(PACKAGE_DIR)/usr/lib/grub/"$$SIG"ned; \
+			sbattach --attach $(SIGNATURE_DIR)/usr/lib/grub/"$$SIG" \
+				$(PACKAGE_DIR)/usr/lib/grub/"$$SIG"ned; \
 		fi; \
-	done
+	done < <(find $(SIGNATURE_DIR)/usr/lib/grub -name '*.sig' -printf '%P\n')
 
 maintainerclean:
 	rm -rf debian/localpackages
 
 sign:
 	for GRUB_ARCH in $(GRUB_ARCHS); do \
-		$(SIGN) "$(GRUB_VERSION)" "$$GRUB_ARCH" "$(UNSIGNED_PACKAGE_NAME)" "$(GRUB_PRIVKEY)" "$(GRUB_CERT)" "$(MIRROR_URL)" "$(MIRROR_SUITE)" "$(SIGNER)" "$(NSS_DIR)" "$(NSS_TOKEN)"; \
+		$(SIGN) "$(GRUB_VERSION)" "$$GRUB_ARCH" "$(UNSIGNED_PACKAGE_NAME)" \
+		"$(GRUB_PRIVKEY)" "$(GRUB_CERT)" "$(MIRROR_URL)" "$(MIRROR_SUITE)" \
+		"$(SIGNER)" "$(NSS_DIR)" "$(NSS_TOKEN)"; \
 	done
 
 .PHONY: maintainerclean sign

@@ -7,16 +7,6 @@ import os, os.path, shutil, subprocess, tempfile
 import deb822, codecs, hashlib, io, lzma, re, struct, urllib.parse, urllib.request
 import gc
 
-ARCH_TO_EFI_NAME = {
-    'amd64': 'x64',
-    'arm64': 'aa64',
-}
-
-ARCH_TO_EFI_PLATFORM = {
-    'amd64': 'x86_64-efi',
-    'arm64': 'arm64-efi',
-}
-
 class ArchiveMetadataError(Exception):
     pass
 
@@ -175,9 +165,6 @@ def sign(grubversion_str, arch, package_name, image_privkey_name,
     if os.path.isdir(signature_dir):
         shutil.rmtree(signature_dir)
 
-    platform = ARCH_TO_EFI_PLATFORM[arch]
-    efi_name = ARCH_TO_EFI_NAME[arch]
-
     try:
         package_dir = get_package(mirror_url, suite,
                               package_name, grubversion_str, arch)
@@ -190,24 +177,20 @@ def sign(grubversion_str, arch, package_name, image_privkey_name,
     signature_dir = os.path.join('debian/signatures', package_name)
     os.makedirs(signature_dir)
 
-    for binary in ('grub', 'gcd', 'grubnet'):
-        # Shrink the heap before we start forking children
-        gc.collect()
-
-        if signer == 'sbsign':
-            sign_image_efi('%s/usr/lib/grub/%s-signed/%s%s.efi' %
-                           (package_dir, platform, binary, efi_name),
-                           '%s/usr/lib/grub/%s-signed/%s%s.efi.sig' %
-                           (signature_dir, platform, binary, efi_name),
-                           image_privkey_name, image_cert_name)
-        elif signer == 'pesign':
-            sign_image_efi_pesign('%s/usr/lib/grub/%s-signed/%s%s.efi' %
-                           (package_dir, platform, binary, efi_name),
-                           '%s/usr/lib/grub/%s-signed/%s%s.efi.sig' %
-                           (signature_dir, platform, binary, efi_name),
-                           nss_dir, image_cert_name, nss_token)
-        else:
-            raise Exception('unknown signer')
+    for walk_dir, subdir_names, file_names in os.walk(package_dir):
+        for rel_name in file_names:
+            rel_dir = os.path.relpath(walk_dir, package_dir)
+            if rel_name.endswith('.efi'):
+                if signer == 'sbsign':
+                    sign_image_efi('%s/%s' % (walk_dir, rel_name),
+                                   '%s/%s/%s.sig' % (signature_dir, rel_dir, rel_name),
+                                   image_privkey_name, image_cert_name)
+                elif signer == 'pesign':
+                    sign_image_efi_pesign('%s/%s' % (walk_dir, rel_name),
+                                   '%s/%s/%s.sig' % (signature_dir, rel_dir, rel_name),
+                                   nss_dir, image_cert_name, nss_token)
+                else:
+                    raise Exception('unknown signer')
 
     print('Signatures should be committed: git add debian/signatures && git commit')
 
