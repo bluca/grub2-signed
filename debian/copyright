@@ -7,6 +7,7 @@ Comment:
  'apt-get source grub2'.
 
 Files: debian/certs/* debian/signatures/*
+Copyright: Public Domain
 License: public-domain
  Digital signatures and certificates are presumed not to be
  copyrightable works, and no copyright is claimed for them.
