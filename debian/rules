@@ -15,6 +15,22 @@ SIGNATURE_DIR = debian/signatures/$(UNSIGNED_PACKAGE_NAME)
 %:
 	dh $@
 
+# Build with grub's original version, changelog and copyright, as it makes
+# more sense to have it match the unsigned binary
+
+override_dh_gencontrol:
+	dh_gencontrol -p $(PACKAGE_NAME) -- -v$(GRUB_VERSION)
+
+override_dh_installchangelogs:
+	dh_installchangelogs
+	gunzip -c /usr/share/doc/$(UNSIGNED_PACKAGE_NAME)/changelog.Debian.gz > \
+		$(PACKAGE_DIR)/usr/share/doc/$(PACKAGE_NAME)/changelog
+
+override_dh_installdocs:
+	dh_installdocs
+	cp /usr/share/doc/$(UNSIGNED_PACKAGE_NAME)/copyright \
+		$(PACKAGE_DIR)/usr/share/doc/$(PACKAGE_NAME)/
+
 override_dh_auto_install:
 	while read SIG; do \
 		mkdir -p $(PACKAGE_DIR)/usr/lib/grub/$${SIG%/*}; \
