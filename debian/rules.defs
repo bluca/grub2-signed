@@ -1,17 +1,21 @@
 BUILD_DIR = debian/build
 GRUB_VERSION :=
-GRUB_ARCHS :=
+GRUB_ARCHS := amd64
 # sbsign (default) or pesign
 SIGNER := pesign
 # when using pesign, points to the NSS DB that holds the certs
-NSS_DIR :=
+NSS_DIR := sql:$(HOME)/git/linux-sign/vyatta/vyatta_pesign_db
 # to be used with pesign to make use of a hardware token
-NSS_TOKEN :=
+# fetch with: modutil -dbdir $NSS_DIR -list
+NSS_TOKEN := PIV_II (PIV Card Holder pin)
 
 MIRROR_URL = http://deb.debian.org/debian/
 MIRROR_SUITE = unstable
 
-# For initial testing - to be replaced with HSM
-GRUB_SIGNER :=
-GRUB_PRIVKEY :=
-GRUB_CERT :=
+GRUB_SIGNER := lboccass@brocade.com
+# sbsign: path to DB key and certificate in PEM format
+#GRUB_PRIVKEY :=
+#GRUB_CERT :=
+# pesign: certificate name in the hardware token, fetch with:
+# certutil -d sql:`pwd` -h 'PIV_II (PIV Card Holder pin)' -L
+GRUB_CERT := Certificate for Digital Signature
