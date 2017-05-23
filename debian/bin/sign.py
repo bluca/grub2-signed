@@ -6,6 +6,8 @@ sys.path.append(sys.argv[1] + "/lib/python")
 import os, os.path, shutil, subprocess, tempfile
 import deb822, codecs, hashlib, io, lzma, re, struct, urllib.parse, urllib.request
 import gc
+import pexpect
+import getpass
 
 class ArchiveMetadataError(Exception):
     pass
@@ -146,21 +148,30 @@ def sign_image_efi(image_name, signature_name, privkey_name, cert_name):
         raise Exception('sbsign failed')
 
 def sign_image_efi_pesign(image_name, signature_name, nss_dir, cert_name,
-                          nss_token=""):
+                          nss_token="", pin=None):
     print('I: Signing image %s' % image_name)
     print('I: Storing detached signature as %s' % signature_name)
     os.makedirs(os.path.dirname(signature_name), exist_ok=True)
-    subprocess.check_call(['pesign', '-s', '-n', nss_dir, '-c', cert_name,
-                           '--export-signature', signature_name,
-                           '-i', image_name] +
-                           ([] if len(nss_token) == 0 else ['-t', nss_token]))
+    if pin is None:
+        subprocess.check_call(['pesign', '-s', '-n', nss_dir, '-c', cert_name,
+                               '--export-signature', signature_name,
+                               '-i', image_name] +
+                               ([] if len(nss_token) == 0 else ['-t', nss_token]))
+    else:
+        sign = pexpect.spawn("pesign", args=['-s', '-n', nss_dir, '-c', cert_name,
+                               '--export-signature', signature_name,
+                               '-i', image_name, '-t', nss_token], timeout=60)
+        i = sign.expect([pexpect.EOF, pexpect.TIMEOUT, 'Enter Password or Pin', "Enter passphrase"])
+        while (i >= 2):
+            sign.sendline(pin)
+            i = sign.expect([pexpect.EOF, pexpect.TIMEOUT, 'Enter Password or Pin', "Enter passphrase"])
     # Work around bug #819987
     if not os.path.isfile(signature_name):
         raise Exception('pesign failed')
 
 def sign(grubversion_str, arch, package_name, image_privkey_name,
          image_cert_name, mirror_url, suite, signer='sbsign',
-         nss_dir=None, nss_token=""):
+         nss_dir=None, nss_token="", pin=""):
     signature_dir = 'debian/signatures'
     if os.path.isdir(signature_dir):
         shutil.rmtree(signature_dir)
@@ -177,6 +188,11 @@ def sign(grubversion_str, arch, package_name, image_privkey_name,
     signature_dir = os.path.join('debian/signatures', package_name)
     os.makedirs(signature_dir)
 
+    if signer == "sbsign":
+        pin = None
+    if pin == "" and nss_dir is not None and nss_token != "" and signer == "pesign":
+        pin = getpass.getpass('Hardware token PIN:')
+
     for walk_dir, subdir_names, file_names in os.walk(package_dir):
         for rel_name in file_names:
             rel_dir = os.path.relpath(walk_dir, package_dir)
@@ -188,7 +204,7 @@ def sign(grubversion_str, arch, package_name, image_privkey_name,
                 elif signer == 'pesign':
                     sign_image_efi_pesign('%s/%s' % (walk_dir, rel_name),
                                    '%s/%s/%s.sig' % (signature_dir, rel_dir, rel_name),
-                                   nss_dir, image_cert_name, nss_token)
+                                   nss_dir, image_cert_name, nss_token, pin)
                 else:
                     raise Exception('unknown signer')
 
