@@ -1,4 +1,4 @@
-grub2-signed (1.79) UNRELEASED; urgency=medium
+grub2-signed (1.79) unstable; urgency=medium
 
   * Import grub2-signed 1.78 from Ubuntu
   * Implement offline signing and detached signatures
@@ -9,8 +9,11 @@ grub2-signed (1.79) UNRELEASED; urgency=medium
   * Add Copyright: Public Domain to silence Lintian Warning
   * Override Lintian Warnings about changelog being non-native
   * Install grub's version, changelog and copyright
+  * Set Brocade metadata
+  * Enter PIN only once per build with pesign
+  * Set metadata and config to use pesign with Yubikey
 
- -- Luca Boccassi <lboccass@brocade.com>  Mon, 23 Jan 2017 17:02:01 +0000
+ -- Luca Boccassi <lboccass@brocade.com>  Thu, 25 May 2017 22:07:25 +0100
 
 grub2-signed (1.78) zesty; urgency=medium
 
