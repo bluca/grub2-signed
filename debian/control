@@ -1,13 +1,13 @@
 Source: grub2-signed
 Section: utils
 Priority: optional
-Maintainer: Brocade Support <support@brocade.com>
-Build-Depends: debhelper (>= 9.20151004~), rsync, pesign [amd64 arm64 armhf i386], grub-efi-amd64-unsigned (= 2.02~beta3-3) [amd64], grub-efi-arm64-unsigned (= 2.02~beta3-3) [arm64]
+Maintainer: Luca Boccassi <bluca@debian.org>
+Build-Depends: debhelper (>= 9.20151004~), dh-signobs, grub-efi-amd64-bin [amd64], grub-efi-arm64-bin [arm64],
 Standards-Version: 3.9.8
 
 Package: grub-efi-amd64-signed
 Architecture: any-amd64
-Depends: ${misc:Depends}, grub-efi-amd64
+Depends: ${misc:Depends}, grub-efi-amd64, ${sign:Depends},
 Description: GRand Unified Bootloader, version 2 (EFI-AMD64 version, signed)
  GRUB is a portable, powerful bootloader.  This version of GRUB is based on a
  cleaner design than its predecessors, and provides the following new features:
@@ -23,7 +23,7 @@ Description: GRand Unified Bootloader, version 2 (EFI-AMD64 version, signed)
 
 Package: grub-efi-arm64-signed
 Architecture: any-arm64
-Depends: ${misc:Depends}, grub-efi-arm64
+Depends: ${misc:Depends}, grub-efi-arm64, ${sign:Depends},
 Description: GRand Unified Bootloader, version 2 (EFI-ARM64 version, signed)
  GRUB is a portable, powerful bootloader.  This version of GRUB is based on a
  cleaner design than its predecessors, and provides the following new features:

@@ -1,45 +1,13 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: GNU GRUB
-Source: http://www.gnu.org/software/grub/
+Source: https://www.gnu.org/software/grub/
 Comment:
  This file describes only the grub2-signed source package. The actual
  bootloader source code may be found in the grub2 source package:
  'apt-get source grub2'.
 
-Files: debian/certs/* debian/signatures/*
-Copyright: Public Domain
-License: public-domain
- Digital signatures and certificates are presumed not to be
- copyrightable works, and no copyright is claimed for them.
-Comment:
- The signatures and certificates in this package cannot be regenerated
- as-is without the associated private key material, but they can be
- replaced using alternate private keys.
-
-Files: debian/rules
-Copyright: 2016 Debian kernel team
-           2017 Brocade Communications Systems
-License: GPL-2
- This package is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License version 2 as
- published by the Free Software Foundation.
- .
- This package is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- .
- You should have received a copy of the GNU General Public License
- along with this package; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
- .
- On Debian systems, the complete text of the GNU General Public
- License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
-
 Files: debian/*
-Copyright: 2012 Canonical Ltd.
-           2016 Debian kernel team
-           2017 Brocade Communications Systems
+Copyright: 2018 Luca Boccassi <bluca@debian.org>
 License: GPL-3+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

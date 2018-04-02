@@ -1,2 +1,2 @@
-# we intentionally ship grub's original changelog which is non-native
+# we intentionally ship the original changelog which is non-native
 grub-efi-arm64-signed: latest-debian-changelog-entry-changed-to-native

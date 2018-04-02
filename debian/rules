@@ -1,25 +1,38 @@
 #!/usr/bin/make -f
 SHELL := bash -e
 
-include debian/rules.defs
+include /usr/share/dpkg/default.mk
 
-SIGN = debian/bin/sign.py
+# grub is special, and the suffixes don't univocally match:
+# for amd64 it's the GNU prefix, but for arm64 it's the arch
+ifneq (,$(filter $(DEB_HOST_ARCH), arm64))
+    GRUB_ARCH := $(DEB_HOST_ARCH)
+else
+    GRUB_ARCH := $(DEB_HOST_GNU_CPU)
+endif
 
-DEB_HOST_ARCH  := $(shell dpkg-architecture -qDEB_HOST_ARCH)
-
-UNSIGNED_PACKAGE_NAME = grub-efi-$(DEB_HOST_ARCH)-unsigned
-PACKAGE_NAME = grub-efi-$(DEB_HOST_ARCH)-signed
-PACKAGE_DIR = debian/$(PACKAGE_NAME)
-SIGNATURE_DIR = debian/signatures/$(UNSIGNED_PACKAGE_NAME)
+# When forking to a new signed package, it should be enough to change
+# the following variables:
+# - where to look for unsigned EFI binaries, and where to install them
+# - unsigned package name
+UNSIGNED_EFI_INSTALL_DIR := /usr/lib/grub/$(GRUB_ARCH)-efi/monolithic/
+SIGNED_EFI_INSTALL_DIR := /usr/lib/grub/$(GRUB_ARCH)-efi-signed/
+UNSIGNED_PACKAGE_NAME := grub-efi-$(DEB_HOST_ARCH)-bin
+PACKAGE_NAME := grub-efi-$(DEB_HOST_ARCH)-signed
+PACKAGE_DIR := debian/$(PACKAGE_NAME)
+INSTALL_DIR := $(PACKAGE_DIR)/$(SIGNED_EFI_INSTALL_DIR)
+PACKAGE_VERSION := $(shell dpkg-query --showformat='$${Version}' --show $(UNSIGNED_PACKAGE_NAME))
 
 %:
-	dh $@
+	dh $@ --with signobs
 
-# Build with grub's original version, changelog and copyright, as it makes
+# Build with the original's version, changelog and copyright, as it makes
 # more sense to have it match the unsigned binary
 
+# Generate a strict dependency - the unsigned and signed packages must match
 override_dh_gencontrol:
-	dh_gencontrol -p $(PACKAGE_NAME) -- -v$(GRUB_VERSION)
+	dh_gencontrol -p $(PACKAGE_NAME) -- -v$(PACKAGE_VERSION) \
+		-V'sign:Depends=$(UNSIGNED_PACKAGE_NAME) (= $(PACKAGE_VERSION))'
 
 override_dh_installchangelogs:
 	dh_installchangelogs
@@ -32,29 +45,5 @@ override_dh_installdocs:
 		$(PACKAGE_DIR)/usr/share/doc/$(PACKAGE_NAME)/
 
 override_dh_auto_install:
-	while read SIG; do \
-		mkdir -p $(PACKAGE_DIR)/usr/lib/grub/$${SIG%/*}; \
-		if [ "$(SIGNER)" = "pesign" ]; then \
-			pesign --import-signed-certificate \
-				$(SIGNATURE_DIR)/usr/lib/grub/"$$SIG" \
-				-i /usr/lib/grub/$${SIG%.sig} \
-				-o $(PACKAGE_DIR)/usr/lib/grub/"$$SIG"ned --padding; \
-		else \
-			cp -a /usr/lib/grub/$${SIG%.sig} \
-				$(PACKAGE_DIR)/usr/lib/grub/"$$SIG"ned; \
-			sbattach --attach $(SIGNATURE_DIR)/usr/lib/grub/"$$SIG" \
-				$(PACKAGE_DIR)/usr/lib/grub/"$$SIG"ned; \
-		fi; \
-	done < <(find $(SIGNATURE_DIR)/usr/lib/grub -name '*.sig' -printf '%P\n')
-
-maintainerclean:
-	rm -rf debian/localpackages
-
-sign:
-	for GRUB_ARCH in $(GRUB_ARCHS); do \
-		$(SIGN) "$(GRUB_VERSION)" "$$GRUB_ARCH" "$(UNSIGNED_PACKAGE_NAME)" \
-		"$(GRUB_PRIVKEY)" "$(GRUB_CERT)" "$(MIRROR_URL)" "$(MIRROR_SUITE)" \
-		"$(SIGNER)" "$(NSS_DIR)" "$(NSS_TOKEN)" "$(PIN)"; \
-	done
-
-.PHONY: maintainerclean sign
+	install -m 0755 -d $(INSTALL_DIR)
+	install -m 0644 -t $(INSTALL_DIR) $(UNSIGNED_EFI_INSTALL_DIR)/*.efi
